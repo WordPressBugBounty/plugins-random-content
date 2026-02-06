@@ -1,14 +1,121 @@
+# Copyright (C) 2026 Endo Creative
+# This file is distributed under the same license as the Random Content plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
-"POT-Creation-Date: 2015-01-30 17:35-0700\n"
-"PO-Revision-Date: 2015-01-30 17:41-0700\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"Project-Id-Version: Random Content 1.5.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/random-content\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.7.4\n"
-"X-Poedit-Basepath: .\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: en\n"
+"POT-Creation-Date: 2026-02-05T16:22:40+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: random-content\n"
+
+#. Plugin Name of the plugin
+#: random-content.php
+#: class-random-content-widget.php:10
+#: class-random-content.php:194
+#: class-random-content.php:195
+msgid "Random Content"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: random-content.php
+msgid "https://www.endocreative.com"
+msgstr ""
+
+#. Description of the plugin
+#: random-content.php
+msgid "Randomly display any content anywhere on your site"
+msgstr ""
+
+#. Author of the plugin
+#: random-content.php
+msgid "Endo Creative"
+msgstr ""
+
+#: class-random-content-widget.php:9
+msgid "Display random content from the selected group"
+msgstr ""
+
+#: class-random-content-widget.php:62
+msgid "Title:"
+msgstr ""
+
+#: class-random-content-widget.php:78
+msgid "Group:"
+msgstr ""
+
+#: class-random-content-widget.php:80
+msgid "All Groups"
+msgstr ""
+
+#: class-random-content-widget.php:87
+msgid "Create a group to organize multiple widgets."
+msgstr ""
+
+#: class-random-content-widget.php:92
+msgid "Number of items to show at once"
+msgstr ""
+
+#: class-random-content.php:196
+msgid "Add New"
+msgstr ""
+
+#: class-random-content.php:197
+#: class-random-content.php:199
+msgid "Add New Random Content"
+msgstr ""
+
+#: class-random-content.php:198
+msgid "Edit Random Content"
+msgstr ""
+
+#: class-random-content.php:200
+msgid "View Random Content"
+msgstr ""
+
+#: class-random-content.php:201
+msgid "Search"
+msgstr ""
+
+#: class-random-content.php:202
+msgid "No Random Content Found"
+msgstr ""
+
+#: class-random-content.php:203
+msgid "No Random Content Found in Trash"
+msgstr ""
+
+#: class-random-content.php:228
+msgid "Groups"
+msgstr ""
+
+#: class-random-content.php:229
+msgid "Group"
+msgstr ""
+
+#: class-random-content.php:230
+msgid "Add New Group"
+msgstr ""
+
+#: class-random-content.php:231
+msgid "No groups found."
+msgstr ""
+
+#: class-random-content.php:232
+msgid "Parent Group"
+msgstr ""
+
+#: class-random-content.php:233
+msgid "Search Groups"
+msgstr ""
+
+#: class-random-content.php:291
+#: class-random-content.php:319
+msgid "No posts found."
+msgstr ""

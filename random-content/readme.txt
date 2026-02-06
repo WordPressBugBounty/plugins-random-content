@@ -2,9 +2,9 @@
 Contributors: endocreative
 Donate link: https://www.endocreative.com
 Tags: content, widget, random, shortcode, text, images, testimonials, faq
-Requires at least: 4.0.1
-Tested up to: 6.2.1
-Stable tag: 1.4.1
+Requires at least: 5.0.1
+Tested up to: 6.9.1
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,11 @@ In the shortcode, use the num_posts parameter. In the widget, enter a number in 
 1. Adding the widget to a sidebar.
 
 == Changelog ==
+
+= 1.5.0 =
+* Replaced ORDER BY RAND() with efficient PHP randomization
+* Added transient caching
+* Added multiple code improvements
 
 = 1.4.1 =
 * Ensure compatibility with latest WP version

@@ -5,7 +5,8 @@ Plugin URI: https://www.endocreative.com
 Description: Randomly display any content anywhere on your site
 Author: Endo Creative
 Author URI: https://www.endocreative.com
-Version: 1.4.1
+Version: 1.5.0
+Text Domain: random-content
 */
 
 // If this file is called directly, abort.

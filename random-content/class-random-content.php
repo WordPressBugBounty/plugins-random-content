@@ -31,7 +31,7 @@ class Endo_Random_Content
 	{
 
 		$this->name = 'random-content';
-		$this->version = '1.4.1';
+		$this->version = '1.5.0';
 	}
 
 	/**
@@ -58,6 +58,101 @@ class Endo_Random_Content
 		add_filter('manage_edit-endo_wrc_group_columns', array($this, 'add_random_content_group_columns'));
 
 		add_filter('manage_endo_wrc_group_custom_column', array($this, 'random_content_group_custom_columns'), 10, 3);
+
+		// Cache invalidation hooks
+		add_action('save_post_endo_wrc_cpt', array($this, 'clear_random_content_cache'));
+		add_action('delete_post', array($this, 'clear_random_content_cache'));
+		add_action('edited_endo_wrc_group', array($this, 'clear_random_content_cache'));
+		add_action('delete_endo_wrc_group', array($this, 'clear_random_content_cache'));
+	}
+
+	/**
+	 * Clears all random content transient caches
+	 *
+	 * @since 1.5.0
+	 */
+	public function clear_random_content_cache()
+	{
+		global $wpdb;
+		$wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_rc_posts_%' OR option_name LIKE '_transient_timeout_rc_posts_%'");
+	}
+
+	/**
+	 * Gets random content with caching and efficient randomization
+	 * Shared method used by shortcodes and widget
+	 *
+	 * @since 1.5.0
+	 * @param int    $num_posts Number of posts to return
+	 * @param string $group_id  Group ID to filter by (optional)
+	 * @param string $field     Taxonomy field type: 'id' or 'slug' (default: 'id')
+	 * @return array Array of post objects
+	 */
+	public static function get_random_content($num_posts = 1, $group_id = '', $field = 'id')
+	{
+		$num_posts = max(1, (int) $num_posts);
+		$cache_key = 'rc_posts_' . md5($group_id . '_' . $field);
+		$cache_duration = HOUR_IN_SECONDS;
+
+		// Try to get cached post IDs
+		$all_post_ids = get_transient($cache_key);
+
+		if (false === $all_post_ids) {
+			// Build query args to get all matching post IDs
+			$query_args = array(
+				'post_type' => 'endo_wrc_cpt',
+				'posts_per_page' => -1,
+				'fields' => 'ids',
+				'no_found_rows' => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			);
+
+			if (!empty($group_id)) {
+				$query_args['tax_query'] = array(
+					array(
+						'taxonomy' => 'endo_wrc_group',
+						'field' => $field,
+						'terms' => $group_id
+					)
+				);
+			}
+
+			$query = new WP_Query($query_args);
+			$all_post_ids = $query->posts;
+
+			// Cache the post IDs
+			set_transient($cache_key, $all_post_ids, $cache_duration);
+		}
+
+		if (empty($all_post_ids)) {
+			return array();
+		}
+
+		// Use PHP array_rand for efficient randomization instead of ORDER BY RAND()
+		$count = count($all_post_ids);
+		if ($count <= $num_posts) {
+			$random_ids = $all_post_ids;
+			shuffle($random_ids);
+		} else {
+			$random_keys = array_rand($all_post_ids, $num_posts);
+			if (!is_array($random_keys)) {
+				$random_keys = array($random_keys);
+			}
+			$random_ids = array_map(function($key) use ($all_post_ids) {
+				return $all_post_ids[$key];
+			}, $random_keys);
+		}
+
+		// Fetch the actual posts using the random IDs
+		$posts_query = new WP_Query(array(
+			'post_type' => 'endo_wrc_cpt',
+			'post__in' => $random_ids,
+			'posts_per_page' => $num_posts,
+			'orderby' => 'post__in',
+			'no_found_rows' => true,
+		));
+
+		return $posts_query->posts;
 	}
 
 
@@ -181,7 +276,7 @@ class Endo_Random_Content
 	 * Defines random content shortcode
 	 *
 	 * @since 0.3.0
-	 * @deprecated 1.0.0
+	 * @deprecated 1.0.0 Use [random_content] shortcode instead
 	 */
 	public function shortcode($atts)
 	{
@@ -190,44 +285,17 @@ class Endo_Random_Content
 			'num_posts' => 1,
 		), $atts);
 
-		// if $group_id is set, then filter results by $group_id
-		if (!empty($a['group_id'])) {
+		$posts = self::get_random_content($a['num_posts'], $a['group_id'], 'id');
 
-			$my_query = new WP_Query(array(
-				'post_type' => 'endo_wrc_cpt',
-				'posts_per_page' => $a['num_posts'],
-				'orderby' => 'rand',
-				'tax_query' => array(
-					array(
-						'taxonomy' => 'endo_wrc_group',
-						'field' => 'id',
-						'terms' => $a['group_id']
-					)
-				)
-			));
-		} else {
-
-			// filter through all entries
-			$my_query = new WP_Query(array(
-				'post_type' => 'endo_wrc_cpt',
-				'posts_per_page' => $a['num_posts'],
-				'orderby' => 'rand'
-			));
+		if (empty($posts)) {
+			return __('No posts found.', 'random-content');
 		}
 
-		if ($my_query->have_posts()) {
-
-			$content = "";
-
-			while ($my_query->have_posts()) : $my_query->the_post();
-
-				$content .= apply_filters('the_content', get_the_content());
-
-			endwhile;
-		} else {
-			$content = __('No posts found.', 'random-content');
+		$content = "";
+		foreach ($posts as $post) {
+			setup_postdata($post);
+			$content .= apply_filters('the_content', $post->post_content);
 		}
-
 		wp_reset_postdata();
 
 		return $content;
@@ -240,50 +308,22 @@ class Endo_Random_Content
 	 */
 	public function new_shortcode($atts)
 	{
-
 		$a = shortcode_atts(array(
 			'group_id' => '',
 			'num_posts' => 1,
 		), $atts);
 
+		$posts = self::get_random_content($a['num_posts'], $a['group_id'], 'id');
+
+		if (empty($posts)) {
+			return apply_filters('rc_content', __('No posts found.', 'random-content'));
+		}
+
 		$content = "";
-
-		// if $group_id is set, then filter results by $group_id
-		if (!empty($a['group_id'])) {
-
-			$my_query = new WP_Query(array(
-				'post_type' => 'endo_wrc_cpt',
-				'posts_per_page' => $a['num_posts'],
-				'orderby' => 'rand',
-				'tax_query' => array(
-					array(
-						'taxonomy' => 'endo_wrc_group',
-						'field' => 'id',
-						'terms' => $a['group_id']
-					)
-				)
-			));
-		} else {
-
-			// filter through all entries
-			$my_query = new WP_Query(array(
-				'post_type' => 'endo_wrc_cpt',
-				'posts_per_page' => $a['num_posts'],
-				'orderby' => 'rand'
-			));
+		foreach ($posts as $post) {
+			setup_postdata($post);
+			$content .= apply_filters('the_content', $post->post_content);
 		}
-
-		if ($my_query->have_posts()) {
-
-			while ($my_query->have_posts()) : $my_query->the_post();
-
-				$content .= apply_filters('the_content', get_the_content());
-
-			endwhile;
-		} else {
-			$content .= __('No posts found.', 'random-content');
-		}
-
 		wp_reset_postdata();
 
 		return apply_filters('rc_content', $content);
