@@ -31,7 +31,7 @@ class Endo_Random_Content
 	{
 
 		$this->name = 'random-content';
-		$this->version = '1.5.0';
+		$this->version = '1.6.0';
 	}
 
 	/**
@@ -59,11 +59,101 @@ class Endo_Random_Content
 
 		add_filter('manage_endo_wrc_group_custom_column', array($this, 'random_content_group_custom_columns'), 10, 3);
 
+		// REST API and front-end scripts
+		add_action('rest_api_init', array($this, 'register_rest_routes'));
+		add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+
 		// Cache invalidation hooks
 		add_action('save_post_endo_wrc_cpt', array($this, 'clear_random_content_cache'));
 		add_action('delete_post', array($this, 'clear_random_content_cache'));
 		add_action('edited_endo_wrc_group', array($this, 'clear_random_content_cache'));
 		add_action('delete_endo_wrc_group', array($this, 'clear_random_content_cache'));
+
+		// Pro upsell (only when Pro is not active)
+		if (!class_exists('Endo_Random_Content_Pro')) {
+			add_action('add_meta_boxes_endo_wrc_cpt', array($this, 'add_pro_teaser_meta_boxes'));
+			add_action('admin_notices', array($this, 'render_pro_admin_banner'));
+			add_action('admin_menu', array($this, 'add_pro_submenu_page'));
+			add_filter('plugin_action_links_' . plugin_basename(dirname(__FILE__)) . '/random-content.php', array($this, 'add_pro_plugin_row_link'));
+			add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
+			add_action('wp_ajax_rc_dismiss_pro_banner', array($this, 'ajax_dismiss_pro_banner'));
+		}
+	}
+
+	/**
+	 * Registers the REST API route for fetching random content via AJAX
+	 *
+	 * @since 1.6.0
+	 */
+	public function register_rest_routes()
+	{
+		register_rest_route('random-content/v1', '/posts', array(
+			'methods'  => 'GET',
+			'callback' => array($this, 'rest_get_random_content'),
+			'permission_callback' => '__return_true',
+			'args' => array(
+				'group'     => array('default' => '', 'sanitize_callback' => 'sanitize_text_field'),
+				'num_posts' => array('default' => 1, 'sanitize_callback' => 'absint'),
+				'field'     => array('default' => 'id', 'sanitize_callback' => 'sanitize_text_field'),
+			),
+		));
+	}
+
+	/**
+	 * REST API callback that returns rendered random content as HTML
+	 *
+	 * @since 1.6.0
+	 * @param WP_REST_Request $request
+	 * @return WP_REST_Response
+	 */
+	public function rest_get_random_content($request)
+	{
+		$group     = $request->get_param('group');
+		$num_posts = $request->get_param('num_posts');
+		$field     = $request->get_param('field');
+
+		if (!in_array($field, array('id', 'slug'), true)) {
+			$field = 'id';
+		}
+
+		$posts = self::get_random_content($num_posts, $group, $field);
+
+		$content = '';
+		if (!empty($posts)) {
+			foreach ($posts as $post) {
+				setup_postdata($post);
+				$content .= apply_filters('the_content', $post->post_content);
+			}
+			wp_reset_postdata();
+			$content = apply_filters('rc_content', $content);
+		}
+
+		$response = rest_ensure_response(array('html' => $content));
+		$response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+		$response->header('Pragma', 'no-cache');
+		$response->header('Expires', '0');
+
+		return $response;
+	}
+
+	/**
+	 * Enqueues the front-end JavaScript for AJAX-based random content loading
+	 *
+	 * @since 1.6.0
+	 */
+	public function enqueue_scripts()
+	{
+		wp_enqueue_script(
+			'random-content',
+			plugin_dir_url(__FILE__) . 'js/random-content.js',
+			array(),
+			$this->version,
+			true
+		);
+		wp_localize_script('random-content', 'rcData', array(
+			'restUrl' => esc_url_raw(rest_url('random-content/v1/posts')),
+			'nonce'   => wp_create_nonce('wp_rest'),
+		));
 	}
 
 	/**
@@ -285,20 +375,23 @@ class Endo_Random_Content
 			'num_posts' => 1,
 		), $atts);
 
+		$placeholder = sprintf(
+			'<div class="rc-placeholder" data-rc-group="%s" data-rc-num="%d" data-rc-field="id"></div>',
+			esc_attr($a['group_id']),
+			(int) $a['num_posts']
+		);
+
 		$posts = self::get_random_content($a['num_posts'], $a['group_id'], 'id');
-
-		if (empty($posts)) {
-			return __('No posts found.', 'random-content');
+		$noscript = '';
+		if (!empty($posts)) {
+			foreach ($posts as $post) {
+				setup_postdata($post);
+				$noscript .= apply_filters('the_content', $post->post_content);
+			}
+			wp_reset_postdata();
 		}
 
-		$content = "";
-		foreach ($posts as $post) {
-			setup_postdata($post);
-			$content .= apply_filters('the_content', $post->post_content);
-		}
-		wp_reset_postdata();
-
-		return $content;
+		return $placeholder . '<noscript>' . $noscript . '</noscript>';
 	}
 
 	/**
@@ -313,19 +406,310 @@ class Endo_Random_Content
 			'num_posts' => 1,
 		), $atts);
 
+		$placeholder = sprintf(
+			'<div class="rc-placeholder" data-rc-group="%s" data-rc-num="%d" data-rc-field="id"></div>',
+			esc_attr($a['group_id']),
+			(int) $a['num_posts']
+		);
+
 		$posts = self::get_random_content($a['num_posts'], $a['group_id'], 'id');
-
-		if (empty($posts)) {
-			return apply_filters('rc_content', __('No posts found.', 'random-content'));
+		$noscript = '';
+		if (!empty($posts)) {
+			foreach ($posts as $post) {
+				setup_postdata($post);
+				$noscript .= apply_filters('the_content', $post->post_content);
+			}
+			wp_reset_postdata();
 		}
 
-		$content = "";
-		foreach ($posts as $post) {
-			setup_postdata($post);
-			$content .= apply_filters('the_content', $post->post_content);
-		}
-		wp_reset_postdata();
+		return $placeholder . '<noscript>' . apply_filters('rc_content', $noscript) . '</noscript>';
+	}
+	// =========================================================================
+	// Pro Upsell Methods
+	// =========================================================================
 
-		return apply_filters('rc_content', $content);
+	/**
+	 * URL for the Pro upgrade page
+	 */
+	private function get_pro_url()
+	{
+		return 'https://randomcontentpro.com';
+	}
+
+	/**
+	 * Enqueues admin CSS for upsell components
+	 */
+	public function enqueue_admin_styles($hook)
+	{
+		$screen = get_current_screen();
+		if (!$screen) {
+			return;
+		}
+
+		// Load on our CPT screens, taxonomy screens, plugins page, and our Go Pro page
+		$load_on = array('endo_wrc_cpt', 'edit-endo_wrc_cpt', 'edit-endo_wrc_group', 'plugins');
+		if (in_array($screen->id, $load_on, true) || $screen->id === 'endo_wrc_cpt_page_rc-go-pro') {
+			wp_enqueue_style(
+				'rc-admin-upsell',
+				plugin_dir_url(__FILE__) . 'css/rc-admin-upsell.css',
+				array(),
+				$this->version
+			);
+		}
+	}
+
+	/**
+	 * Adds locked/disabled Pro feature teaser meta boxes to the edit screen
+	 */
+	public function add_pro_teaser_meta_boxes()
+	{
+		add_meta_box(
+			'rc-pro-features',
+			__('Pro Features', 'random-content'),
+			array($this, 'render_pro_teaser_meta_box'),
+			'endo_wrc_cpt',
+			'side',
+			'low'
+		);
+	}
+
+	/**
+	 * Renders the Pro features teaser meta box content
+	 */
+	public function render_pro_teaser_meta_box($post)
+	{
+		$pro_url = $this->get_pro_url();
+		?>
+		<div class="rc-pro-teaser">
+			<div class="rc-pro-teaser-feature">
+				<span class="dashicons dashicons-calendar-alt"></span>
+				<div>
+					<strong><?php esc_html_e('Smart Scheduling', 'random-content'); ?></strong>
+					<p><?php esc_html_e('Set date ranges and time windows for each content item.', 'random-content'); ?></p>
+				</div>
+			</div>
+			<div class="rc-pro-teaser-feature">
+				<span class="dashicons dashicons-groups"></span>
+				<div>
+					<strong><?php esc_html_e('Audience Targeting', 'random-content'); ?></strong>
+					<p><?php esc_html_e('Show content to specific user roles or campaign visitors.', 'random-content'); ?></p>
+				</div>
+			</div>
+			<div class="rc-pro-teaser-feature">
+				<span class="dashicons dashicons-chart-bar"></span>
+				<div>
+					<strong><?php esc_html_e('Weighted Selection', 'random-content'); ?></strong>
+					<p><?php esc_html_e('Control how often each item is shown with weight 1-10.', 'random-content'); ?></p>
+				</div>
+			</div>
+			<div class="rc-pro-teaser-feature">
+				<span class="dashicons dashicons-visibility"></span>
+				<div>
+					<strong><?php esc_html_e('Impression Tracking', 'random-content'); ?></strong>
+					<p><?php esc_html_e('See how many times each content item has been displayed.', 'random-content'); ?></p>
+				</div>
+			</div>
+			<div class="rc-pro-teaser-feature">
+				<span class="dashicons dashicons-controls-repeat"></span>
+				<div>
+					<strong><?php esc_html_e('Repeat Prevention', 'random-content'); ?></strong>
+					<p><?php esc_html_e('Avoid showing the same content to returning visitors.', 'random-content'); ?></p>
+				</div>
+			</div>
+			<a href="<?php echo esc_url($pro_url); ?>" class="rc-pro-teaser-button" target="_blank" rel="noopener">
+				<?php esc_html_e('Upgrade to Pro', 'random-content'); ?>
+			</a>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Renders a dismissible admin banner on plugin pages
+	 */
+	public function render_pro_admin_banner()
+	{
+		// Only show on our CPT screens
+		$screen = get_current_screen();
+		if (!$screen) {
+			return;
+		}
+		$our_screens = array('endo_wrc_cpt', 'edit-endo_wrc_cpt', 'edit-endo_wrc_group');
+		if (!in_array($screen->id, $our_screens, true)) {
+			return;
+		}
+
+		// Check if banner was dismissed
+		if (get_option('rc_pro_banner_dismissed')) {
+			return;
+		}
+
+		$pro_url = $this->get_pro_url();
+		?>
+		<div class="notice rc-pro-banner is-dismissible" data-rc-dismiss-nonce="<?php echo esc_attr(wp_create_nonce('rc_dismiss_pro_banner')); ?>">
+			<div class="rc-pro-banner-inner">
+				<div class="rc-pro-banner-content">
+					<strong><?php esc_html_e('Unlock the full power of Random Content', 'random-content'); ?></strong>
+					<p><?php esc_html_e('Get scheduling, audience targeting, weighted selection, impression tracking, and more with Random Content Pro.', 'random-content'); ?></p>
+				</div>
+				<a href="<?php echo esc_url($pro_url); ?>" class="button button-primary rc-pro-banner-cta" target="_blank" rel="noopener">
+					<?php esc_html_e('Learn More', 'random-content'); ?>
+				</a>
+			</div>
+		</div>
+		<script>
+		jQuery(function($) {
+			$(document).on('click', '.rc-pro-banner .notice-dismiss', function() {
+				var nonce = $(this).closest('.rc-pro-banner').data('rc-dismiss-nonce');
+				$.post(ajaxurl, { action: 'rc_dismiss_pro_banner', _wpnonce: nonce });
+			});
+		});
+		</script>
+		<?php
+	}
+
+	/**
+	 * AJAX handler to persist banner dismissal
+	 */
+	public function ajax_dismiss_pro_banner()
+	{
+		check_ajax_referer('rc_dismiss_pro_banner');
+		if (current_user_can('manage_options')) {
+			update_option('rc_pro_banner_dismissed', 1, true);
+		}
+		wp_die();
+	}
+
+	/**
+	 * Adds the "Go Pro" submenu page under Random Content
+	 */
+	public function add_pro_submenu_page()
+	{
+		add_submenu_page(
+			'edit.php?post_type=endo_wrc_cpt',
+			__('Go Pro', 'random-content'),
+			__('Go Pro', 'random-content'),
+			'manage_options',
+			'rc-go-pro',
+			array($this, 'render_pro_page')
+		);
+	}
+
+	/**
+	 * Renders the Go Pro comparison page
+	 */
+	public function render_pro_page()
+	{
+		$pro_url = $this->get_pro_url();
+		?>
+		<div class="wrap rc-pro-page">
+			<h1><?php esc_html_e('Upgrade to Random Content Pro', 'random-content'); ?></h1>
+			<p class="rc-pro-page-intro">
+				<?php esc_html_e('Take full control of your random content with powerful Pro features.', 'random-content'); ?>
+			</p>
+
+			<table class="rc-pro-comparison">
+				<thead>
+					<tr>
+						<th class="rc-pro-comparison-feature"><?php esc_html_e('Feature', 'random-content'); ?></th>
+						<th class="rc-pro-comparison-free"><?php esc_html_e('Free', 'random-content'); ?></th>
+						<th class="rc-pro-comparison-pro"><?php esc_html_e('Pro', 'random-content'); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><?php esc_html_e('Random content display', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Shortcode & Widget support', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Content Groups', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('AJAX loading (no page cache issues)', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Gutenberg Block', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Smart Scheduling (date & time windows)', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Audience Targeting (roles & campaigns)', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Weighted Randomization', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Impression Tracking', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Repeat Prevention (cooldown & no-repeat)', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Display Rules (visibility & page types)', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Fallback Content', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Fade-in Transitions', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('GA4 / GTM Analytics Integration', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+					<tr>
+						<td><?php esc_html_e('Priority Support', 'random-content'); ?></td>
+						<td><span class="dashicons dashicons-minus rc-no"></span></td>
+						<td><span class="dashicons dashicons-yes-alt rc-check"></span></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div class="rc-pro-page-cta">
+				<a href="<?php echo esc_url($pro_url); ?>" class="button button-primary button-hero" target="_blank" rel="noopener">
+					<?php esc_html_e('Get Random Content Pro', 'random-content'); ?>
+				</a>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Adds a "Go Pro" link to the plugin row on the Plugins page
+	 */
+	public function add_pro_plugin_row_link($links)
+	{
+		$pro_url = $this->get_pro_url();
+		$links[] = '<a href="' . esc_url($pro_url) . '" style="color:#00a32a;font-weight:600;" target="_blank" rel="noopener">' . esc_html__('Go Pro', 'random-content') . '</a>';
+		return $links;
 	}
 } // end class

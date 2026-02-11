@@ -27,16 +27,23 @@ class Endo_WRC_Widget extends WP_Widget
 			echo $args['before_title'] . esc_html($title) . $args['after_title'];
 		}
 
-		// Use shared method from main class (uses 'slug' field for widget)
-		$posts = Endo_Random_Content::get_random_content($num_posts, $group, 'slug');
+		printf(
+			'<div class="rc-placeholder" data-rc-group="%s" data-rc-num="%d" data-rc-field="slug"></div>',
+			esc_attr($group),
+			$num_posts
+		);
 
+		// Noscript fallback for non-JS visitors
+		$posts = Endo_Random_Content::get_random_content($num_posts, $group, 'slug');
 		if (!empty($posts)) {
+			echo '<noscript>';
 			foreach ($posts as $post) {
 				setup_postdata($post);
 				$thecontent = apply_filters('the_content', $post->post_content);
 				echo wp_kses_post(apply_filters('rc_content', $thecontent));
 			}
 			wp_reset_postdata();
+			echo '</noscript>';
 		}
 
 		echo $args['after_widget'];
@@ -91,5 +98,13 @@ class Endo_WRC_Widget extends WP_Widget
 		echo '<input type="number" min="1" class="small-text" id="' . esc_attr($this->get_field_id('num_posts')) . '" name="' . esc_attr($this->get_field_name('num_posts')) . '" value="' . esc_attr($num_posts) . '" />';
 		echo ' <label for="' . esc_attr($this->get_field_id('num_posts')) . '">' . esc_html__('Number of items to show at once', 'random-content') . '</label>';
 		echo '</p>';
+
+		if (!class_exists('Endo_Random_Content_Pro')) {
+			echo '<div class="rc-widget-pro-teaser">';
+			echo '<p><strong>' . esc_html__('Want more control?', 'random-content') . '</strong> ';
+			echo esc_html__('Random Content Pro adds scheduling, audience targeting, display rules, and more.', 'random-content') . ' ';
+			echo '<a href="https://randomcontentpro.com" target="_blank" rel="noopener">' . esc_html__('Learn more', 'random-content') . ' &rarr;</a>';
+			echo '</p></div>';
+		}
 	}
 }

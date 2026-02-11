@@ -1,11 +1,11 @@
 <?php
 /*
 Plugin Name: Random Content
-Plugin URI: https://www.endocreative.com
-Description: Randomly display any content anywhere on your site
+Plugin URI: https://www.randomcontentpro.com
+Description: Display random content anywhere on your WordPress site. Rotate testimonials, banners, CTAs, and more with a simple shortcode or widget.
 Author: Endo Creative
 Author URI: https://www.endocreative.com
-Version: 1.5.0
+Version: 1.6.0
 Text Domain: random-content
 */
 

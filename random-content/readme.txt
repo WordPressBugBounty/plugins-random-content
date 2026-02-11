@@ -1,62 +1,128 @@
 === Random Content ===
 Contributors: endocreative
 Donate link: https://www.endocreative.com
-Tags: content, widget, random, shortcode, text, images, testimonials, faq
+Tags: random content, rotating content, testimonials, dynamic content, content rotation
 Requires at least: 5.0.1
 Tested up to: 6.9.1
-Stable tag: 1.5.0
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Randomly display any content anywhere on your site.
+Display random content anywhere on your WordPress site. Rotate testimonials, banners, CTAs, quotes, and more with a simple shortcode or widget. No coding required.
 
 == Description ==
 
-This plugin allows you to display random content anywhere on your site using a shortcode or widget. You can group your random content together, allowing you to display different content in multiple locations throughout your site.
+**Random Content** is the easiest way to keep your WordPress site feeling fresh and dynamic. Create content groups, add as many items as you want, and display a random selection anywhere on your site with a single shortcode or widget.
 
-The content is added via a custom post type, so you have full access to the tinyMCE editor. This allows you to easily add images, text, and links to your random content.
+Every time a visitor loads the page, they see something different. That means higher engagement, more clicks, and a site that never feels stale.
 
-= Using a widget =
-1. Navigate to Appearance->Widgets and add the Random Content widget to a sidebar.
-2. Select a group from the dropdown. If you don't create a group, the widget will use all entries.
+= What can you do with it? =
 
-= Using a shortcode =
-Place the shortcode `[random_content]` anywhere on a post or page.
+* **Rotate testimonials** — Show a different customer quote on every page load
+* **Randomize banners** — Keep sidebar and header promotions fresh without manual updates
+* **Cycle CTAs** — Test different calls-to-action to see what gets clicks
+* **Display tips or quotes** — Add variety to any page, post, or widget area
+* **Shuffle FAQs** — Surface different questions each visit
 
-To choose entries from a specific group, add the `group_id` parameter. For example, `[random_content group_id="64"]`.
+= Free features =
 
-To specify the number of posts to show, add the `num_posts` parameter. For example, `[random_content group_id="13" num_posts="3"]`.
+* Display random content anywhere with the `[random_content]` shortcode
+* Use in posts, pages, sidebars, or widget areas
+* Organize content into groups for separate rotation sets
+* Control how many items display at once
+* Full WordPress editor support — text, images, HTML, shortcodes, embeds
+* Lightweight and fast with built-in caching
+* No coding required
 
+= Getting started =
 
+1. Create entries under the Random Content post type
+2. Organize them into Groups (works like categories)
+3. Add `[random_content group_id="123"]` wherever you want random content to appear
+
+That's it. Your content rotates automatically on every page load.
+
+= Need more control? =
+
+**[Random Content Pro](https://randomcontentpro.com/)** gives you complete control over what visitors see and when they see it:
+
+* **Scheduling** — Set start and end dates so content appears and disappears automatically. Run time-limited campaigns without touching your site.
+* **Visitor targeting** — Show different content based on user role, login status, UTM parameters, referrer, or page type.
+* **Frequency controls** — Prevent the same item from showing twice in a row. Set cooldown periods between displays.
+* **Weighted selection** — Assign weights (1–10) to each item. Higher weight = shown more often. Perfect for A/B testing.
+* **Display rules** — Control visibility per group: logged-in only, specific roles, specific page types.
+* **Fallback content** — Define what shows when all items are filtered out. Never display an empty space.
+* **Automatic updates** — Get new features and fixes delivered directly to your WordPress dashboard.
+
+[Learn more about Random Content Pro →](https://randomcontentpro.com/)
+
+= Shortcode usage =
+
+Display a random item from all entries:
+`[random_content]`
+
+Display from a specific group:
+`[random_content group_id="64"]`
+
+Display multiple items at once:
+`[random_content group_id="13" num_posts="3"]`
+
+= Widget usage =
+
+Navigate to Appearance → Widgets, add the Random Content widget to any sidebar, and select a group from the dropdown. Leave the group empty to pull from all entries.
 
 == Installation ==
 
-1. Upload `random-content.php` to the `/wp-content/plugins/` directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Create an entry in the Random Content post type.
-4. Categorize your content using Groups.
-
-**Only content within the content editor will be displayed.**
+1. Upload the `random-content` folder to `/wp-content/plugins/`
+2. Activate the plugin through the Plugins menu in WordPress
+3. Go to Random Content → Add New to create your first entry
+4. Organize entries into Groups under Random Content → Groups
+5. Place the `[random_content]` shortcode in any post, page, or widget
 
 == Frequently Asked Questions ==
 
-= Can I group certain entries together? =
+= How do I group entries together? =
 
-Yes. Create a group, and assign specific entries to the group. It works just like categories.
+Create a Group under Random Content → Groups, then assign entries to that group. It works just like post categories.
 
-= How do I find the group id? =
+= How do I find the group ID? =
 
-Click on Random Content > Group in the WordPress admin. Look for the number in the ID column.
+Go to Random Content → Groups in your WordPress admin. The ID is listed in the table.
 
-= How do I display more than one post? =
+= Can I show more than one item at a time? =
 
-In the shortcode, use the num_posts parameter. In the widget, enter a number in the "Number of Posts to Show at Once" input.
+Yes. Use the `num_posts` parameter: `[random_content group_id="13" num_posts="3"]`. In the widget, enter a number in the "Number of Posts" field.
+
+= Can I schedule content to appear at specific times? =
+
+Scheduling is available in [Random Content Pro](https://randomcontentpro.com/). Set start and end dates for any content item, and it will appear and disappear automatically.
+
+= Can I show different content to logged-in vs. logged-out users? =
+
+Yes — with [Random Content Pro](https://randomcontentpro.com/). Pro adds visitor targeting based on user role, login status, UTM parameters, referrer domain, and page type.
+
+= Can I control how often a specific item is shown? =
+
+[Random Content Pro](https://randomcontentpro.com/) includes weighted selection (assign weights 1–10 to each item) and frequency controls (prevent the same item from showing consecutively).
+
+= Will this slow down my site? =
+
+No. Random Content uses efficient PHP randomization and built-in transient caching. No extra database queries on the front end beyond what's needed.
+
+= Does Random Content Pro require the free version? =
+
+No. Random Content Pro is a standalone plugin that includes everything from the free version plus all Pro features. If you have the free version installed, deactivate it before activating Pro.
 
 == Screenshots ==
 
 1. Adding the widget to a sidebar.
 
 == Changelog ==
+
+= 1.6.0 =
+* Added AJAX-based content loading via REST API for full compatibility with page caching
+* Front-end JavaScript loads random content dynamically with noscript fallback
+* Updated Plugin URI to randomcontentpro.com
 
 = 1.5.0 =
 * Replaced ORDER BY RAND() with efficient PHP randomization
