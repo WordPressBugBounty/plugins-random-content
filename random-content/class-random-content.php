@@ -31,7 +31,7 @@ class Endo_Random_Content
 	{
 
 		$this->name = 'random-content';
-		$this->version = '1.6.0';
+		$this->version = '1.6.1';
 	}
 
 	/**

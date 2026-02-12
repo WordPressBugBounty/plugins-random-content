@@ -6,8 +6,9 @@ document.addEventListener('DOMContentLoaded', function () {
 		var num = el.getAttribute('data-rc-num') || 1;
 		var field = el.getAttribute('data-rc-field') || 'id';
 
+		var separator = rcData.restUrl.indexOf('?') !== -1 ? '&' : '?';
 		var url = rcData.restUrl +
-			'?group=' + encodeURIComponent(group) +
+			separator + 'group=' + encodeURIComponent(group) +
 			'&num_posts=' + encodeURIComponent(num) +
 			'&field=' + encodeURIComponent(field) +
 			'&_=' + Date.now();
