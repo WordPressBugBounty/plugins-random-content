@@ -23,6 +23,15 @@ class Endo_Random_Content
 	private $version;
 
 	/**
+	 * Whether any shortcode on the current page uses ajax="yes"
+	 *
+	 * @since 1.6.2
+	 * @access private
+	 * @var bool
+	 */
+	private $has_ajax_placeholders = false;
+
+	/**
 	 * Initializes the plugin by defining the properties.
 	 *
 	 * @since 0.1.0
@@ -31,7 +40,7 @@ class Endo_Random_Content
 	{
 
 		$this->name = 'random-content';
-		$this->version = '1.6.1';
+		$this->version = '1.6.2';
 	}
 
 	/**
@@ -59,9 +68,9 @@ class Endo_Random_Content
 
 		add_filter('manage_endo_wrc_group_custom_column', array($this, 'random_content_group_custom_columns'), 10, 3);
 
-		// REST API and front-end scripts
+		// REST API for AJAX mode; scripts enqueued conditionally in wp_footer
 		add_action('rest_api_init', array($this, 'register_rest_routes'));
-		add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+		add_action('wp_footer', array($this, 'maybe_enqueue_ajax_scripts'));
 
 		// Cache invalidation hooks
 		add_action('save_post_endo_wrc_cpt', array($this, 'clear_random_content_cache'));
@@ -137,12 +146,16 @@ class Endo_Random_Content
 	}
 
 	/**
-	 * Enqueues the front-end JavaScript for AJAX-based random content loading
+	 * Enqueues AJAX scripts only when a shortcode on the page used ajax="yes"
 	 *
-	 * @since 1.6.0
+	 * @since 1.6.2
 	 */
-	public function enqueue_scripts()
+	public function maybe_enqueue_ajax_scripts()
 	{
+		if (!$this->has_ajax_placeholders) {
+			return;
+		}
+
 		wp_enqueue_script(
 			'random-content',
 			plugin_dir_url(__FILE__) . 'js/random-content.js',
@@ -373,25 +386,30 @@ class Endo_Random_Content
 		$a = shortcode_atts(array(
 			'group_id' => '',
 			'num_posts' => 1,
+			'ajax' => 'no',
 		), $atts);
 
-		$placeholder = sprintf(
-			'<div class="rc-placeholder" data-rc-group="%s" data-rc-num="%d" data-rc-field="id"></div>',
-			esc_attr($a['group_id']),
-			(int) $a['num_posts']
-		);
-
 		$posts = self::get_random_content($a['num_posts'], $a['group_id'], 'id');
-		$noscript = '';
+		$content = '';
 		if (!empty($posts)) {
 			foreach ($posts as $post) {
 				setup_postdata($post);
-				$noscript .= apply_filters('the_content', $post->post_content);
+				$content .= apply_filters('the_content', $post->post_content);
 			}
 			wp_reset_postdata();
 		}
 
-		return $placeholder . '<noscript>' . $noscript . '</noscript>';
+		if ($a['ajax'] === 'yes') {
+			$this->has_ajax_placeholders = true;
+			$placeholder = sprintf(
+				'<div class="rc-placeholder" data-rc-group="%s" data-rc-num="%d" data-rc-field="id"></div>',
+				esc_attr($a['group_id']),
+				(int) $a['num_posts']
+			);
+			return $placeholder . '<noscript>' . $content . '</noscript>';
+		}
+
+		return $content;
 	}
 
 	/**
@@ -404,25 +422,31 @@ class Endo_Random_Content
 		$a = shortcode_atts(array(
 			'group_id' => '',
 			'num_posts' => 1,
+			'ajax' => 'no',
 		), $atts);
 
-		$placeholder = sprintf(
-			'<div class="rc-placeholder" data-rc-group="%s" data-rc-num="%d" data-rc-field="id"></div>',
-			esc_attr($a['group_id']),
-			(int) $a['num_posts']
-		);
-
 		$posts = self::get_random_content($a['num_posts'], $a['group_id'], 'id');
-		$noscript = '';
+		$content = '';
 		if (!empty($posts)) {
 			foreach ($posts as $post) {
 				setup_postdata($post);
-				$noscript .= apply_filters('the_content', $post->post_content);
+				$content .= apply_filters('the_content', $post->post_content);
 			}
 			wp_reset_postdata();
+			$content = apply_filters('rc_content', $content);
 		}
 
-		return $placeholder . '<noscript>' . apply_filters('rc_content', $noscript) . '</noscript>';
+		if ($a['ajax'] === 'yes') {
+			$this->has_ajax_placeholders = true;
+			$placeholder = sprintf(
+				'<div class="rc-placeholder" data-rc-group="%s" data-rc-num="%d" data-rc-field="id"></div>',
+				esc_attr($a['group_id']),
+				(int) $a['num_posts']
+			);
+			return $placeholder . '<noscript>' . $content . '</noscript>';
+		}
+
+		return $content;
 	}
 	// =========================================================================
 	// Pro Upsell Methods

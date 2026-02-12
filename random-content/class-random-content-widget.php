@@ -27,23 +27,14 @@ class Endo_WRC_Widget extends WP_Widget
 			echo $args['before_title'] . esc_html($title) . $args['after_title'];
 		}
 
-		printf(
-			'<div class="rc-placeholder" data-rc-group="%s" data-rc-num="%d" data-rc-field="slug"></div>',
-			esc_attr($group),
-			$num_posts
-		);
-
-		// Noscript fallback for non-JS visitors
 		$posts = Endo_Random_Content::get_random_content($num_posts, $group, 'slug');
 		if (!empty($posts)) {
-			echo '<noscript>';
 			foreach ($posts as $post) {
 				setup_postdata($post);
 				$thecontent = apply_filters('the_content', $post->post_content);
 				echo wp_kses_post(apply_filters('rc_content', $thecontent));
 			}
 			wp_reset_postdata();
-			echo '</noscript>';
 		}
 
 		echo $args['after_widget'];

@@ -4,11 +4,11 @@ Donate link: https://www.endocreative.com
 Tags: random content, rotating content, testimonials, dynamic content, content rotation
 Requires at least: 5.0.1
 Tested up to: 6.9.1
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Display random content anywhere on your WordPress site. Rotate testimonials, banners, CTAs, quotes, and more with a simple shortcode or widget. No coding required.
+Display random content anywhere on your WordPress site. Rotate testimonials, banners, CTAs, and more with a simple shortcode or widget.
 
 == Description ==
 
@@ -67,6 +67,9 @@ Display from a specific group:
 Display multiple items at once:
 `[random_content group_id="13" num_posts="3"]`
 
+Load content via AJAX (useful for sites with page caching):
+`[random_content group_id="64" ajax="yes"]`
+
 = Widget usage =
 
 Navigate to Appearance → Widgets, add the Random Content widget to any sidebar, and select a group from the dropdown. Leave the group empty to pull from all entries.
@@ -105,6 +108,10 @@ Yes — with [Random Content Pro](https://randomcontentpro.com/). Pro adds visit
 
 [Random Content Pro](https://randomcontentpro.com/) includes weighted selection (assign weights 1–10 to each item) and frequency controls (prevent the same item from showing consecutively).
 
+= What does the ajax parameter do? =
+
+By default, content is rendered server-side with the page for the best performance. If your site uses full-page caching (e.g., WP Super Cache, W3 Total Cache, or a CDN), the random content may get cached and stop rotating. Add `ajax="yes"` to load content dynamically after the page loads, bypassing the cache: `[random_content group_id="64" ajax="yes"]`.
+
 = Will this slow down my site? =
 
 No. Random Content uses efficient PHP randomization and built-in transient caching. No extra database queries on the front end beyond what's needed.
@@ -118,6 +125,11 @@ No. Random Content Pro is a standalone plugin that includes everything from the 
 1. Adding the widget to a sidebar.
 
 == Changelog ==
+
+= 1.6.2 =
+* Restored server-side rendering as default for better performance
+* AJAX loading is now opt-in via ajax="yes" shortcode parameter
+* JavaScript and REST API requests only load when AJAX mode is active
 
 = 1.6.1 =
 * Fixed AJAX content loading on sites without pretty permalinks
