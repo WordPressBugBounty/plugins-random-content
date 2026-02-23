@@ -4,7 +4,7 @@ Donate link: https://www.endocreative.com
 Tags: random content, rotating content, testimonials, dynamic content, content rotation
 Requires at least: 5.0.1
 Tested up to: 6.9.1
-Stable tag: 1.6.2
+Stable tag: 1.6.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,6 +125,9 @@ No. Random Content Pro is a standalone plugin that includes everything from the 
 1. Adding the widget to a sidebar.
 
 == Changelog ==
+
+= 1.6.3 =
+* Fix bug for memory exhaustion from infinite recursion
 
 = 1.6.2 =
 * Restored server-side rendering as default for better performance

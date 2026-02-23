@@ -32,6 +32,26 @@ class Endo_Random_Content
 	private $has_ajax_placeholders = false;
 
 	/**
+	 * Recursion guard to prevent infinite loops when apply_filters('the_content')
+	 * is called inside shortcode handlers (since the_content runs do_shortcode)
+	 *
+	 * @since 1.6.3
+	 * @access private
+	 * @var bool
+	 */
+	private static $rendering = false;
+
+	public static function is_rendering()
+	{
+		return self::$rendering;
+	}
+
+	public static function set_rendering($value)
+	{
+		self::$rendering = (bool) $value;
+	}
+
+	/**
 	 * Initializes the plugin by defining the properties.
 	 *
 	 * @since 0.1.0
@@ -40,7 +60,7 @@ class Endo_Random_Content
 	{
 
 		$this->name = 'random-content';
-		$this->version = '1.6.2';
+		$this->version = '1.6.3';
 	}
 
 	/**
@@ -125,6 +145,7 @@ class Endo_Random_Content
 			$field = 'id';
 		}
 
+		self::$rendering = true;
 		$posts = self::get_random_content($num_posts, $group, $field);
 
 		$content = '';
@@ -136,6 +157,7 @@ class Endo_Random_Content
 			wp_reset_postdata();
 			$content = apply_filters('rc_content', $content);
 		}
+		self::$rendering = false;
 
 		$response = rest_ensure_response(array('html' => $content));
 		$response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
@@ -383,12 +405,17 @@ class Endo_Random_Content
 	 */
 	public function shortcode($atts)
 	{
+		if (self::$rendering) {
+			return '';
+		}
+
 		$a = shortcode_atts(array(
 			'group_id' => '',
 			'num_posts' => 1,
 			'ajax' => 'no',
 		), $atts);
 
+		self::$rendering = true;
 		$posts = self::get_random_content($a['num_posts'], $a['group_id'], 'id');
 		$content = '';
 		if (!empty($posts)) {
@@ -398,6 +425,7 @@ class Endo_Random_Content
 			}
 			wp_reset_postdata();
 		}
+		self::$rendering = false;
 
 		if ($a['ajax'] === 'yes') {
 			$this->has_ajax_placeholders = true;
@@ -419,12 +447,17 @@ class Endo_Random_Content
 	 */
 	public function new_shortcode($atts)
 	{
+		if (self::$rendering) {
+			return '';
+		}
+
 		$a = shortcode_atts(array(
 			'group_id' => '',
 			'num_posts' => 1,
 			'ajax' => 'no',
 		), $atts);
 
+		self::$rendering = true;
 		$posts = self::get_random_content($a['num_posts'], $a['group_id'], 'id');
 		$content = '';
 		if (!empty($posts)) {
@@ -435,6 +468,7 @@ class Endo_Random_Content
 			wp_reset_postdata();
 			$content = apply_filters('rc_content', $content);
 		}
+		self::$rendering = false;
 
 		if ($a['ajax'] === 'yes') {
 			$this->has_ajax_placeholders = true;
