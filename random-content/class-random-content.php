@@ -60,7 +60,7 @@ class Endo_Random_Content
 	{
 
 		$this->name = 'random-content';
-		$this->version = '1.6.3';
+		$this->version = '1.6.4';
 	}
 
 	/**
@@ -266,6 +266,7 @@ class Endo_Random_Content
 			$random_ids = array_map(function($key) use ($all_post_ids) {
 				return $all_post_ids[$key];
 			}, $random_keys);
+			shuffle($random_ids);
 		}
 
 		// Fetch the actual posts using the random IDs
