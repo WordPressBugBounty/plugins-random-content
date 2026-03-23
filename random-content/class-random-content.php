@@ -52,6 +52,34 @@ class Endo_Random_Content
 	}
 
 	/**
+	 * Process post content through essential WordPress formatting filters
+	 * without triggering page builder filters (Elementor, Beaver Builder, etc.)
+	 *
+	 * Using apply_filters('the_content', ...) inside shortcodes/widgets causes
+	 * page builders to re-render the current page's builder content for each
+	 * random content post, because get_the_ID() still returns the host page ID.
+	 *
+	 * @since 1.6.5
+	 * @param string $content Raw post content
+	 * @return string Processed content
+	 */
+	public static function process_content($content)
+	{
+		if (function_exists('do_blocks')) {
+			$content = do_blocks($content);
+		}
+		$content = wptexturize($content);
+		$content = convert_smilies($content);
+		$content = wpautop($content);
+		$content = shortcode_unautop($content);
+		if (function_exists('wp_filter_content_tags')) {
+			$content = wp_filter_content_tags($content);
+		}
+		$content = do_shortcode($content);
+		return $content;
+	}
+
+	/**
 	 * Initializes the plugin by defining the properties.
 	 *
 	 * @since 0.1.0
@@ -60,7 +88,7 @@ class Endo_Random_Content
 	{
 
 		$this->name = 'random-content';
-		$this->version = '1.6.4';
+		$this->version = '1.6.5';
 	}
 
 	/**
@@ -151,10 +179,8 @@ class Endo_Random_Content
 		$content = '';
 		if (!empty($posts)) {
 			foreach ($posts as $post) {
-				setup_postdata($post);
-				$content .= apply_filters('the_content', $post->post_content);
+				$content .= self::process_content($post->post_content);
 			}
-			wp_reset_postdata();
 			$content = apply_filters('rc_content', $content);
 		}
 		self::$rendering = false;
@@ -421,10 +447,8 @@ class Endo_Random_Content
 		$content = '';
 		if (!empty($posts)) {
 			foreach ($posts as $post) {
-				setup_postdata($post);
-				$content .= apply_filters('the_content', $post->post_content);
+				$content .= self::process_content($post->post_content);
 			}
-			wp_reset_postdata();
 		}
 		self::$rendering = false;
 
@@ -463,10 +487,8 @@ class Endo_Random_Content
 		$content = '';
 		if (!empty($posts)) {
 			foreach ($posts as $post) {
-				setup_postdata($post);
-				$content .= apply_filters('the_content', $post->post_content);
+				$content .= self::process_content($post->post_content);
 			}
-			wp_reset_postdata();
 			$content = apply_filters('rc_content', $content);
 		}
 		self::$rendering = false;

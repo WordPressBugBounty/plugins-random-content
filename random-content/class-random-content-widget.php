@@ -31,11 +31,9 @@ class Endo_WRC_Widget extends WP_Widget
 		if (!empty($posts) && !Endo_Random_Content::is_rendering()) {
 			Endo_Random_Content::set_rendering(true);
 			foreach ($posts as $post) {
-				setup_postdata($post);
-				$thecontent = apply_filters('the_content', $post->post_content);
+				$thecontent = Endo_Random_Content::process_content($post->post_content);
 				echo wp_kses_post(apply_filters('rc_content', $thecontent));
 			}
-			wp_reset_postdata();
 			Endo_Random_Content::set_rendering(false);
 		}
 

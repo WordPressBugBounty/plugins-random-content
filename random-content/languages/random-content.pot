@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Random Content plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Random Content 1.5.0\n"
+"Project-Id-Version: Random Content 1.6.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/random-content\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-02-05T16:22:40+00:00\n"
+"POT-Creation-Date: 2026-03-23T15:12:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: random-content\n"
@@ -17,20 +17,19 @@ msgstr ""
 #. Plugin Name of the plugin
 #: random-content.php
 #: class-random-content-widget.php:10
-#: class-random-content.php:194
-#: class-random-content.php:195
+#: class-random-content.php:346
+#: class-random-content.php:347
 msgid "Random Content"
 msgstr ""
 
 #. Plugin URI of the plugin
-#. Author URI of the plugin
 #: random-content.php
-msgid "https://www.endocreative.com"
+msgid "https://www.randomcontentpro.com"
 msgstr ""
 
 #. Description of the plugin
 #: random-content.php
-msgid "Randomly display any content anywhere on your site"
+msgid "Display random content anywhere on your WordPress site. Rotate testimonials, banners, CTAs, and more with a simple shortcode or widget."
 msgstr ""
 
 #. Author of the plugin
@@ -38,84 +37,243 @@ msgstr ""
 msgid "Endo Creative"
 msgstr ""
 
+#. Author URI of the plugin
+#: random-content.php
+msgid "https://www.endocreative.com"
+msgstr ""
+
 #: class-random-content-widget.php:9
 msgid "Display random content from the selected group"
 msgstr ""
 
-#: class-random-content-widget.php:62
+#: class-random-content-widget.php:60
 msgid "Title:"
 msgstr ""
 
-#: class-random-content-widget.php:78
+#: class-random-content-widget.php:76
 msgid "Group:"
 msgstr ""
 
-#: class-random-content-widget.php:80
+#: class-random-content-widget.php:78
 msgid "All Groups"
 msgstr ""
 
-#: class-random-content-widget.php:87
+#: class-random-content-widget.php:85
 msgid "Create a group to organize multiple widgets."
 msgstr ""
 
-#: class-random-content-widget.php:92
+#: class-random-content-widget.php:90
 msgid "Number of items to show at once"
 msgstr ""
 
-#: class-random-content.php:196
+#: class-random-content-widget.php:95
+msgid "Want more control?"
+msgstr ""
+
+#: class-random-content-widget.php:96
+msgid "Random Content Pro adds scheduling, audience targeting, display rules, and more."
+msgstr ""
+
+#: class-random-content-widget.php:97
+msgid "Learn more"
+msgstr ""
+
+#: class-random-content.php:348
 msgid "Add New"
 msgstr ""
 
-#: class-random-content.php:197
-#: class-random-content.php:199
+#: class-random-content.php:349
+#: class-random-content.php:351
 msgid "Add New Random Content"
 msgstr ""
 
-#: class-random-content.php:198
+#: class-random-content.php:350
 msgid "Edit Random Content"
 msgstr ""
 
-#: class-random-content.php:200
+#: class-random-content.php:352
 msgid "View Random Content"
 msgstr ""
 
-#: class-random-content.php:201
+#: class-random-content.php:353
 msgid "Search"
 msgstr ""
 
-#: class-random-content.php:202
+#: class-random-content.php:354
 msgid "No Random Content Found"
 msgstr ""
 
-#: class-random-content.php:203
+#: class-random-content.php:355
 msgid "No Random Content Found in Trash"
 msgstr ""
 
-#: class-random-content.php:228
+#: class-random-content.php:380
 msgid "Groups"
 msgstr ""
 
-#: class-random-content.php:229
+#: class-random-content.php:381
 msgid "Group"
 msgstr ""
 
-#: class-random-content.php:230
+#: class-random-content.php:382
 msgid "Add New Group"
 msgstr ""
 
-#: class-random-content.php:231
+#: class-random-content.php:383
 msgid "No groups found."
 msgstr ""
 
-#: class-random-content.php:232
+#: class-random-content.php:384
 msgid "Parent Group"
 msgstr ""
 
-#: class-random-content.php:233
+#: class-random-content.php:385
 msgid "Search Groups"
 msgstr ""
 
-#: class-random-content.php:291
-#: class-random-content.php:319
-msgid "No posts found."
+#: class-random-content.php:549
+msgid "Pro Features"
+msgstr ""
+
+#: class-random-content.php:568
+msgid "Smart Scheduling"
+msgstr ""
+
+#: class-random-content.php:569
+msgid "Set date ranges and time windows for each content item."
+msgstr ""
+
+#: class-random-content.php:575
+msgid "Audience Targeting"
+msgstr ""
+
+#: class-random-content.php:576
+msgid "Show content to specific user roles or campaign visitors."
+msgstr ""
+
+#: class-random-content.php:582
+msgid "Weighted Selection"
+msgstr ""
+
+#: class-random-content.php:583
+msgid "Control how often each item is shown with weight 1-10."
+msgstr ""
+
+#: class-random-content.php:589
+#: class-random-content.php:741
+msgid "Impression Tracking"
+msgstr ""
+
+#: class-random-content.php:590
+msgid "See how many times each content item has been displayed."
+msgstr ""
+
+#: class-random-content.php:596
+msgid "Repeat Prevention"
+msgstr ""
+
+#: class-random-content.php:597
+msgid "Avoid showing the same content to returning visitors."
+msgstr ""
+
+#: class-random-content.php:601
+msgid "Upgrade to Pro"
+msgstr ""
+
+#: class-random-content.php:632
+msgid "Unlock the full power of Random Content"
+msgstr ""
+
+#: class-random-content.php:633
+msgid "Get scheduling, audience targeting, weighted selection, impression tracking, and more with Random Content Pro."
+msgstr ""
+
+#: class-random-content.php:636
+msgid "Learn More"
+msgstr ""
+
+#: class-random-content.php:670
+#: class-random-content.php:671
+#: class-random-content.php:793
+msgid "Go Pro"
+msgstr ""
+
+#: class-random-content.php:686
+msgid "Upgrade to Random Content Pro"
+msgstr ""
+
+#: class-random-content.php:688
+msgid "Take full control of your random content with powerful Pro features."
+msgstr ""
+
+#: class-random-content.php:694
+msgid "Feature"
+msgstr ""
+
+#: class-random-content.php:695
+msgid "Free"
+msgstr ""
+
+#: class-random-content.php:696
+msgid "Pro"
+msgstr ""
+
+#: class-random-content.php:701
+msgid "Random content display"
+msgstr ""
+
+#: class-random-content.php:706
+msgid "Shortcode & Widget support"
+msgstr ""
+
+#: class-random-content.php:711
+msgid "Content Groups"
+msgstr ""
+
+#: class-random-content.php:716
+msgid "AJAX loading (no page cache issues)"
+msgstr ""
+
+#: class-random-content.php:721
+msgid "Gutenberg Block"
+msgstr ""
+
+#: class-random-content.php:726
+msgid "Smart Scheduling (date & time windows)"
+msgstr ""
+
+#: class-random-content.php:731
+msgid "Audience Targeting (roles & campaigns)"
+msgstr ""
+
+#: class-random-content.php:736
+msgid "Weighted Randomization"
+msgstr ""
+
+#: class-random-content.php:746
+msgid "Repeat Prevention (cooldown & no-repeat)"
+msgstr ""
+
+#: class-random-content.php:751
+msgid "Display Rules (visibility & page types)"
+msgstr ""
+
+#: class-random-content.php:756
+msgid "Fallback Content"
+msgstr ""
+
+#: class-random-content.php:761
+msgid "Fade-in Transitions"
+msgstr ""
+
+#: class-random-content.php:766
+msgid "GA4 / GTM Analytics Integration"
+msgstr ""
+
+#: class-random-content.php:771
+msgid "Priority Support"
+msgstr ""
+
+#: class-random-content.php:780
+msgid "Get Random Content Pro"
 msgstr ""

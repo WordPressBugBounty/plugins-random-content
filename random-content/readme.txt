@@ -3,8 +3,8 @@ Contributors: endocreative
 Donate link: https://www.endocreative.com
 Tags: random content, rotating content, testimonials, dynamic content, content rotation
 Requires at least: 5.0.1
-Tested up to: 6.9.3
-Stable tag: 1.6.4
+Tested up to: 6.9.4
+Stable tag: 1.6.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -125,6 +125,9 @@ No. Random Content Pro is a standalone plugin that includes everything from the 
 1. Adding the widget to a sidebar.
 
 == Changelog ==
+
+= 1.6.5 =
+* Fixed compatibility issue with Elementor and other page builders where editor content would not display
 
 = 1.6.4 =
 * Fixed multiple posts displaying in chronological order instead of random order
